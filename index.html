@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CodeType — Typing Speed Test for Coders</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,300&family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <div class="scanlines"></div>
+  <div class="bg-grid"></div>
+  <div class="glow-orb orb-cyan"></div>
+  <div class="glow-orb orb-pink"></div>
+
+  <div class="app">
+
+    <nav class="navbar">
+      <div class="nav-brand">
+        <span class="brand-bracket">&lt;</span>
+        <span class="brand-text">CodeType</span>
+        <span class="brand-bracket">/&gt;</span>
+      </div>
+      <div class="nav-links">
+        <button class="nav-btn active" data-view="test" onclick="switchView('test')">Test</button>
+        <button class="nav-btn" data-view="leaderboard" onclick="switchView('leaderboard')">Leaderboard</button>
+        <button class="nav-btn" data-view="tips" onclick="switchView('tips')">Tips</button>
+      </div>
+      <div class="nav-status">
+        <span class="status-dot"></span>
+        <span class="status-text" id="statusText">Ready</span>
+      </div>
+    </nav>
+
+    <!-- TEST VIEW -->
+    <div id="view-test" class="view active">
+
+      <div class="mode-bar">
+        <div class="mode-group">
+          <span class="mode-group-label">MODE</span>
+          <button class="mode-btn active" data-mode="code" onclick="setMode('code')">Code</button>
+          <button class="mode-btn" data-mode="words" onclick="setMode('words')">Words</button>
+          <button class="mode-btn" data-mode="quotes" onclick="setMode('quotes')">Quotes</button>
+        </div>
+        <div class="sub-options" id="subOptions"></div>
+        <div class="mode-group">
+          <span class="mode-group-label">TIME</span>
+          <button class="time-btn active" data-time="30" onclick="setTime(30)">30s</button>
+          <button class="time-btn" data-time="60" onclick="setTime(60)">60s</button>
+          <button class="time-btn" data-time="120" onclick="setTime(120)">120s</button>
+        </div>
+      </div>
+
+      <div class="live-stats">
+        <div class="stat-bubble">
+          <span class="stat-val" id="liveWpm">0</span>
+          <span class="stat-lbl">WPM</span>
+        </div>
+        <div class="stat-bubble">
+          <span class="stat-val" id="liveAcc">100</span>
+          <span class="stat-lbl">ACC %</span>
+        </div>
+        <div class="stat-bubble highlight">
+          <span class="stat-val" id="liveTimer">30</span>
+          <span class="stat-lbl">SEC</span>
+        </div>
+        <div class="stat-bubble">
+          <span class="stat-val" id="liveErrors">0</span>
+          <span class="stat-lbl">ERRORS</span>
+        </div>
+        <div class="stat-bubble">
+          <span class="stat-val" id="liveStreak">0</span>
+          <span class="stat-lbl">STREAK</span>
+        </div>
+      </div>
+
+      <div class="typing-container" id="typingContainer">
+        <div class="lang-badge" id="langBadge"></div>
+        <div class="text-display" id="textDisplay"></div>
+        <input
+          type="text"
+          id="typingInput"
+          class="typing-input"
+          placeholder="Click here and start typing..."
+          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+        />
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="ctrl-btn restart-btn" onclick="restartTest()">&#8635; Restart</button>
+        <button class="ctrl-btn skip-btn" onclick="loadNewText()">&#8635; New Text</button>
+        <span class="ctrl-hint">Press <kbd>Tab</kbd> to restart instantly</span>
+      </div>
+
+      <div class="chart-section">
+        <div class="chart-label">WPM OVER TIME</div>
+        <div class="chart-wrap">
+          <canvas id="wpmChart" width="700" height="80"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RESULTS OVERLAY -->
+    <div id="resultsOverlay" class="results-overlay hidden">
+      <div class="results-box">
+        <div class="results-header">
+          <div class="results-level" id="resultsLevel"></div>
+          <h2 class="results-title">Test Complete</h2>
+        </div>
+        <div class="results-grid">
+          <div class="result-card big">
+            <span class="result-val" id="resWpm">0</span>
+            <span class="result-lbl">Words Per Minute</span>
+          </div>
+          <div class="result-card">
+            <span class="result-val" id="resAcc">0</span>
+            <span class="result-lbl">Accuracy %</span>
+          </div>
+          <div class="result-card">
+            <span class="result-val" id="resErrors">0</span>
+            <span class="result-lbl">Errors</span>
+          </div>
+          <div class="result-card">
+            <span class="result-val" id="resStreak">0</span>
+            <span class="result-lbl">Best Streak</span>
+          </div>
+          <div class="result-card">
+            <span class="result-val" id="resChars">0</span>
+            <span class="result-lbl">Characters</span>
+          </div>
+          <div class="result-card">
+            <span class="result-val" id="resTime">0</span>
+            <span class="result-lbl">Seconds</span>
+          </div>
+        </div>
+        <div class="level-message" id="levelMessage"></div>
+        <div class="heatmap-section" id="heatmapSection">
+          <div class="heatmap-label">MISTAKE HEATMAP</div>
+          <div class="heatmap-keyboard" id="heatmapKeyboard"></div>
+          <p class="heatmap-hint">Darker keys = more mistakes. Focus your practice there!</p>
+        </div>
+        <div class="save-section">
+          <input type="text" id="playerName" placeholder="Enter your name to save score..." class="name-input" maxlength="20"/>
+          <button class="save-btn" onclick="saveScore()">Save to Leaderboard</button>
+        </div>
+        <div class="results-actions">
+          <button class="action-btn primary" onclick="restartFromResults()">Try Again</button>
+          <button class="action-btn" onclick="switchView('tips')">How to Improve</button>
+          <button class="action-btn" onclick="switchView('leaderboard')">Leaderboard</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEADERBOARD VIEW -->
+    <div id="view-leaderboard" class="view hidden">
+      <div class="section-header">
+        <h2 class="section-title">🏆 <span class="cyan">Leaderboard</span></h2>
+        <p class="section-sub">Top 10 scores saved on this device</p>
+        <button class="clear-btn" onclick="clearLeaderboard()">Clear Board</button>
+      </div>
+      <div class="leaderboard-table" id="leaderboardTable"></div>
+    </div>
+
+    <!-- TIPS VIEW -->
+    <div id="view-tips" class="view hidden">
+      <div class="section-header">
+        <h2 class="section-title">📖 <span class="cyan">How to Type Faster</span></h2>
+        <p class="section-sub">Evidence-based techniques used by professional coders and typists</p>
+      </div>
+
+      <div class="keyboard-diagram">
+        <div class="kbd-label">HOME ROW — Your Fingers Default Position</div>
+        <div class="keyboard-visual">
+          <div class="kbd-row">
+            <div class="kbd-key dim">Q</div><div class="kbd-key dim">W</div><div class="kbd-key dim">E</div><div class="kbd-key dim">R</div><div class="kbd-key dim">T</div><div class="kbd-key dim">Y</div><div class="kbd-key dim">U</div><div class="kbd-key dim">I</div><div class="kbd-key dim">O</div><div class="kbd-key dim">P</div>
+          </div>
+          <div class="kbd-row home-row">
+            <div class="kbd-key lf4">A<span class="finger">L4</span></div>
+            <div class="kbd-key lf3">S<span class="finger">L3</span></div>
+            <div class="kbd-key lf2">D<span class="finger">L2</span></div>
+            <div class="kbd-key lf1 bump">F<span class="finger">L1</span></div>
+            <div class="kbd-key dim">G</div>
+            <div class="kbd-key dim">H</div>
+            <div class="kbd-key rf1 bump">J<span class="finger">R1</span></div>
+            <div class="kbd-key rf2">K<span class="finger">R2</span></div>
+            <div class="kbd-key rf3">L<span class="finger">R3</span></div>
+            <div class="kbd-key rf4">;<span class="finger">R4</span></div>
+          </div>
+          <div class="kbd-row">
+            <div class="kbd-key dim">Z</div><div class="kbd-key dim">X</div><div class="kbd-key dim">C</div><div class="kbd-key dim">V</div><div class="kbd-key dim">B</div><div class="kbd-key dim">N</div><div class="kbd-key dim">M</div>
+          </div>
+        </div>
+        <div class="kbd-legend">
+          <span class="legend-item lf4-c">Left Pinky (A)</span>
+          <span class="legend-item lf3-c">Left Ring (S)</span>
+          <span class="legend-item lf2-c">Left Middle (D)</span>
+          <span class="legend-item lf1-c">Left Index (F)</span>
+          <span class="legend-item rf1-c">Right Index (J)</span>
+          <span class="legend-item rf2-c">Right Middle (K)</span>
+          <span class="legend-item rf3-c">Right Ring (L)</span>
+          <span class="legend-item rf4-c">Right Pinky (;)</span>
+        </div>
+      </div>
+
+      <div class="tips-section">
+        <h3 class="tips-cat-title">Speed Tips</h3>
+        <div class="tips-grid" id="speedTipsGrid"></div>
+      </div>
+
+      <div class="tips-section">
+        <h3 class="tips-cat-title">Coding-Specific Tips</h3>
+        <div class="tips-grid" id="codingTipsGrid"></div>
+      </div>
+
+      <div class="wpm-scale">
+        <h3 class="tips-cat-title">WPM Scale — Where Do You Stand?</h3>
+        <div class="scale-grid" id="scaleGrid"></div>
+      </div>
+
+      <div class="tips-cta">
+        <button class="action-btn primary" onclick="switchView('test')">Start Practicing Now</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="content.js"></script>
+  <script src="typing.js"></script>
+</body>
+</html>
