@@ -16,7 +16,7 @@ A midnight-neon themed typing speed test built specifically for programmers. Pra
 
 ## Live Demo
 
-👉 [Play on GitHub Pages](https://fatimasherwani04.github.io/typing-speed-test)
+👉 [Play on GitHub Pages](https://fatimasherwani04.github.io/typing-speed-test/)
 
 ## Deploy
 
